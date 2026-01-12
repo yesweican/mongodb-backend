@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+const { Schema } = mongoose;
 
-const userSchema = new mongoose.Schema(
+const userSchema = new Schema(
 	{
 		username: {
 			type: String,
@@ -11,6 +12,11 @@ const userSchema = new mongoose.Schema(
 		fullname: {
 			type: String,
 			required: true,
+		},
+		defaultChannelId: {
+			type: Schema.Types.ObjectId,
+			ref: 'Channel',
+			required: false
 		},
 		password: {
 			type: String,

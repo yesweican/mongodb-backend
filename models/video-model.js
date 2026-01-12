@@ -22,6 +22,11 @@ const videoSchema = new Schema({
     required: false,
     trim: true
   }, 
+	channelId: {
+		type: Schema.Types.ObjectId,
+		ref: 'Channel',
+		required: false
+	},
   creator: {
     type: Schema.Types.ObjectId,
     ref: 'User',
