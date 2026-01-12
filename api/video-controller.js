@@ -85,8 +85,8 @@ export const searchVideos = async (req, res) => {
     )
       .sort({ score: { $meta: 'textScore' } })
       .limit(20)
-      .populate('creator', 'username fullname')
-      .populate('channelId', 'name');
+      .populate('creator', 'username fullname');
+      //.populate('channelId', 'name');
 
     res.status(200).json({
       query: q,
