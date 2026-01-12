@@ -1,38 +1,56 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
-const videoSchema = new Schema({
-  title: {
-    type: String,
-    required: true,
-    trim: true
+const videoSchema = new Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    videoURL: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    description: {
+      type: String,
+      trim: true
+    },
+    alterURL: {
+      type: String,
+      trim: true
+    },
+    channelId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Channel'
+    },
+    creator: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    }
   },
-  videoURL: {
-    type: String,
-    required: true,
-    trim: true
-  }, 
-  description: {
-    type: String,
-    required: false,
-    trim: true
+  { timestamps: true }
+);
+
+/**
+ * Text index with weights
+ * NOTE: MongoDB allows only ONE text index per collection
+ */
+videoSchema.index(
+  {
+    title: 'text',
+    description: 'text'
   },
-  alterURL: {
-    type: String,
-    required: false,
-    trim: true
-  }, 
-	channelId: {
-		type: Schema.Types.ObjectId,
-		ref: 'Channel',
-		required: false
-	},
-  creator: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+  {
+    weights: {
+      title: 10,
+      description: 5
+    },
+    name: 'VideoTextSearchIndex'
   }
-}, { timestamps: true });
+);
 
 const Video = mongoose.model('Video', videoSchema);
 export default Video;

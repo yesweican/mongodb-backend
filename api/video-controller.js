@@ -24,7 +24,14 @@ export const createVideo = async (req, res) => {
     // fs.renameSync(file.path, targetPath); // Move and rename the file
 
     //console.log('User Id:', req.user);
-    const newVideo = new Video({ title, videoURL:"test URL", description, alterURL, creator: req.user});
+    const newVideo = new Video({
+      title,
+      videoURL: "test URL",
+      description,
+      alterURL,
+      creator: req.user,
+      //channelId: req.user.defaultChannelId
+    });
     const savedVideo = await newVideo.save();
 
     res.status(201).json({ 
@@ -54,12 +61,46 @@ export const getVideos = async (req, res) => {
       return res.status(200).json(video);
     }
 
-    const videos = await Video.findAll({creator: req.user});
+    const videos = await Video.find({ creator: req.user });
     res.status(200).json(videos);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch Videos", error: error.message });
   }
 };
+
+// Search videos (weighted text search)
+export const searchVideos = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || q.trim().length === 0) {
+      return res.status(400).json({ message: 'Search term is required' });
+    }
+
+    const results = await Video.find(
+      { $text: { $search: q } },
+      {
+        score: { $meta: 'textScore' }
+      }
+    )
+      .sort({ score: { $meta: 'textScore' } })
+      .limit(20)
+      .populate('creator', 'username fullname')
+      .populate('channelId', 'name');
+
+    res.status(200).json({
+      query: q,
+      count: results.length,
+      results
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Video search failed',
+      error: error.message
+    });
+  }
+};
+
 
 // Get all Articles or get Article by Id
 export const updateVideo = async (req, res) => {
