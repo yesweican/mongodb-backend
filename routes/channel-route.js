@@ -1,6 +1,6 @@
 // routes/article-Routes.js
 import express from 'express';
-import { createChannel, getChannels, updateChannel, deleteChannel } from '../api/channel-controller.js';
+import { createChannel, getMyChannels, getChannelById, updateChannel, deleteChannel } from '../api/channel-controller.js';
 import authenticateToken from "../middleware/auth.js";
 
 const router = express.Router();
@@ -9,7 +9,8 @@ const router = express.Router();
 router.post('/', authenticateToken, createChannel);
 
 // Get all channels or a specific channel by ID
-router.get("/:id?", getChannels);
+router.get("/", authenticateToken, getMyChannels);
+router.get("/:id", getChannelById);
 
 // Update an channel by ID
 router.patch("/:id", authenticateToken, updateChannel);

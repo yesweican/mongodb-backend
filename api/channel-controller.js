@@ -17,20 +17,28 @@ export const createChannel = async (req, res) => {
   }
 };
 
-// Get all Channels or get Channel by Id
-export const getChannels = async (req, res) => {
+// Get all My Channels
+export const getMyChannels = async (req, res) => {
   try {
-    const { id } = req.params;
-    if (id) {
-      const channel = await Channel.findById(id).populate("owner", "fullname email");
-      if (!channel) return res.status(404).json({ message: "Channel not found" });
-      return res.status(200).json(channel);
-    }
+    const { userid } = req.user;
 
-    const channels = await Channel.find().populate("owner", "fullname email");
+    const channels = await Channel.find({ owner: userid }).populate("owner", "fullname email");
     res.status(200).json(channels);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch Channels", error: error.message });
+    res.status(500).json({ message: "Failed to fetch My Channels", error: error.message });
+  }
+};
+
+export const getChannelById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const channel = await Channel.findById(id).populate("owner", "fullname email");
+    if (!channel) return res.status(404).json({ message: "Channel not found" });
+    return res.status(200).json(channel);
+
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch Channel By Id", error: error.message });
   }
 };
   

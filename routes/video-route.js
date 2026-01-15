@@ -1,7 +1,7 @@
 // routes/article-Routes.js
 import express from 'express';
 import multer from "multer";
-import { createVideo, getVideos, updateVideo, deleteVideo } from '../api/video-controller.js';
+import { createVideo, getMyVideos, getVideoById, updateVideo, deleteVideo } from '../api/video-controller.js';
 import authenticateToken from "../middleware/auth.js";
 
 const router = express.Router();
@@ -16,7 +16,8 @@ const upload = multer({
 router.post('/', authenticateToken, upload.single("file"), createVideo);
 
 // Get all videos or a specific video by ID
-router.get("/:id?", authenticateToken, getVideos);
+router.get("/", authenticateToken, getMyVideos);
+router.get("/:id", getVideoById);
 
 // Update an video by ID
 router.patch("/:id", authenticateToken, updateVideo);
