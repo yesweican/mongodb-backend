@@ -2,6 +2,9 @@
 // import path from "path";
 // import fs from "fs";
 import Video from '../models/video-model.js';
+import { AppError } from '../errors/app_error.js'
+import mongoose from 'mongoose';
+
 
 // Create a new video
 export const createVideo = async (req, res) => {
@@ -54,10 +57,21 @@ export const createVideo = async (req, res) => {
 // Get all Videos or get Video by Id
 export const getMyVideos = async (req, res) => {
   try {
-    const videos = await Video.find({ creator: req.user });
-    res.status(200).json(videos);
+    const { userId } = req.user;
+
+    if (!userId) {
+       throw new AppError("User ID is required", 400);
+    }
+
+    const results = await Video.find({ creator: userId });  
+    
+    res.status(200).json({
+      count: results.length,
+      results
+    });
+
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch My Videos", error: error.message });
+   res.status(500).json({ message: "Failed to fetch My Videos", error: error.message });
   }
 };
 

@@ -1,5 +1,7 @@
 // controllers/postController.js
 import Channel from '../models/channel-model.js';
+import { AppError } from '../errors/app_error.js'
+import mongoose from 'mongoose';
 
 // Create a new channel
 export const createChannel = async (req, res) => {
@@ -19,11 +21,19 @@ export const createChannel = async (req, res) => {
 
 // Get all My Channels
 export const getMyChannels = async (req, res) => {
-  try {
-    const { userid } = req.user;
+  try{
+    const { userId }  = req.user;
 
-    const channels = await Channel.find({ owner: userid }).populate("owner", "fullname email");
-    res.status(200).json(channels);
+    if (!userId) {
+      throw new AppError("User ID is required", 400);
+    }    
+
+    const results = await Channel.find({ owner: userId }).populate("owner", "fullname email");
+
+    res.status(200).json({
+      count: results.length,
+      results
+    });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch My Channels", error: error.message });
   }
