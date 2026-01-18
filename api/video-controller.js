@@ -3,14 +3,17 @@
 // import fs from "fs";
 import Video from '../models/video-model.js';
 import { AppError } from '../errors/app_error.js'
-import mongoose from 'mongoose';
 
+const buildVideoUrl = (req, filename) => {
+  // This is the SINGLE place video_url is constructed
+  return `${req.protocol}://${req.get("host")}/uploads/videos/${filename}`;
+};
 
 // Create a new video
 export const createVideo = async (req, res) => {
 
   const file = req.file; // Multer processes 'file' field
-  const { title, videoURL, description, alterURL} = req.body;
+  const { title, description, alterURL} = req.body;
   //console.log('last user:'+ req.user);  // the user<=userId from middleware
   try {
     // Validate input
@@ -26,10 +29,13 @@ export const createVideo = async (req, res) => {
     // const targetPath = path.join(__dirname, "uploads", file.originalname);
     // fs.renameSync(file.path, targetPath); // Move and rename the file
 
+    //const videoPath = `/uploads/videos/${req.file.filename}`;
+    const videoPath = buildVideoUrl(req, req.file.filename);
+
     //console.log('User Id:', req.user);
     const newVideo = new Video({
       title,
-      videoURL: "test URL",
+      videoURL: videoPath,
       description,
       alterURL,
       creator: req.user,

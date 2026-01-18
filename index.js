@@ -13,7 +13,7 @@ import followerRoutes from "./routes/follower-route.js";
 import channelRoutes from "./routes/channel-route.js";
 import subscriberRoutes from "./routes/subscriber-route.js";
 import subscriptionRoutes from "./routes/subscription-route.js";
-import authenticateToken from "./middleware/auth.js";
+import authenticateToken from "./middleware/auth_middleware.js";
 
 // Get environment variables
 dotenv.config()

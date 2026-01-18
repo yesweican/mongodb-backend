@@ -1,13 +1,25 @@
 // controllers/postController.js
 import Article from '../models/article-model.js';
+import { AppError } from "../errors/app_error.js";
+
+const buildImageUrl = (req, filename) => {
+  // This is the SINGLE place image_url is constructed
+  return `${req.protocol}://${req.get("host")}/uploads/images/${filename}`;
+};
 
 // Create a new article
 export const createArticle = async (req, res) => {
   const { title, details } = req.body;
   //console.log('last user:'+ req.user);  // the user<=userId from middleware
   try {
+    var imagePath;
+    if (req.file) {
+      //imagePath = `/uploads/images/${req.file.filename}`;
+      imagePath = buildImageUrl(req, req.file.filename);
+    }
+
     //console.log('User Id:', req.user);
-    const newArticle = new Article({ title, details, author: req.user});
+    const newArticle = new Article({ title, details, author: req.user, videoURL: imagePath });
     const savedArticle = await newArticle.save();
 
     res.status(201).json({ message: 'Article created successfully', article: savedArticle });

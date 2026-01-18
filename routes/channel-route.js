@@ -1,7 +1,7 @@
 // routes/article-Routes.js
 import express from 'express';
 import { createChannel, getMyChannels, getChannelById, updateChannel, deleteChannel } from '../api/channel-controller.js';
-import authenticateToken from "../middleware/auth.js";
+import authenticateToken from "../middleware/auth_middleware.js";
 
 const router = express.Router();
 
