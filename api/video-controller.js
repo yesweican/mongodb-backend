@@ -32,13 +32,13 @@ export const createVideo = async (req, res) => {
     //const videoPath = `/uploads/videos/${req.file.filename}`;
     const videoPath = buildVideoUrl(req, req.file.filename);
 
-    //console.log('User Id:', req.user);
+    console.log('User Id:', req.user);
     const newVideo = new Video({
       title,
       videoURL: videoPath,
       description,
       alterURL,
-      creator: req.user,
+      creator: req.user.userId,
       //channelId: req.user.defaultChannelId
     });
     const savedVideo = await newVideo.save();

@@ -10,7 +10,7 @@ const buildImageUrl = (req, filename) => {
 // Create a new article
 export const createArticle = async (req, res) => {
   const { title, details } = req.body;
-  //console.log('last user:'+ req.user);  // the user<=userId from middleware
+  console.log('Current User:', req.user);
   try {
     var imagePath;
     if (req.file) {
@@ -18,8 +18,8 @@ export const createArticle = async (req, res) => {
       imagePath = buildImageUrl(req, req.file.filename);
     }
 
-    //console.log('User Id:', req.user);
-    const newArticle = new Article({ title, details, author: req.user, videoURL: imagePath });
+    console.log('User Id:', req.user.userId);
+    const newArticle = new Article({ title, details, author: req.user.userId, imageURL: imagePath });
     const savedArticle = await newArticle.save();
 
     res.status(201).json({ message: 'Article created successfully', article: savedArticle });

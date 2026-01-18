@@ -16,7 +16,11 @@ const articleSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  },
+  imageURL: {
+    type: String,
+    trim: true
+  },
 }, { timestamps: true });
 
 const Article = mongoose.model('Article', articleSchema);
