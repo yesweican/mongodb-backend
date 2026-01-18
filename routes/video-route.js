@@ -18,7 +18,7 @@ router.post(
   "/",
   authenticateToken,
   uploadVideo.single("file"),
-  videoController.createVideo
+  createVideo
 );
 
 // Get all videos or a specific video by ID

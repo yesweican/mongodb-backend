@@ -11,7 +11,7 @@ router.post(
   "/",
   authenticateToken,
   uploadImage.single("file"),
-  articleController.createArticle
+  createArticle
 );
 
 // Get all articles or a specific article by ID
