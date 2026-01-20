@@ -30,17 +30,27 @@ export const createArticle = async (req, res) => {
 };
 
 // Get all Articles or get Article by Id
-export const getArticles = async (req, res) => {
+export const getMyArticles = async (req, res) => {
   try {
-    const { id } = req.params;
-    if (id) {
-      const article = await Article.findById(id).populate("author", "fullname email");
-      if (!article) return res.status(404).json({ message: "Article not found" });
-      return res.status(200).json(article);
+    const userid = req.user.id;
+
+    if (!userid) {
+      throw new AppError("User ID is required", 400);
     }
 
-    const articles = await Article.find().populate("author", "fullname email");
+    const articles = await Article.find({ author: userid }).populate("author", "fullname email");
     res.status(200).json(articles);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch articles", error: error.message });
+  }
+};
+
+export const getArticleById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const article = await Article.findById(id).populate("author", "fullname email");
+    if (!article) return res.status(404).json({ message: "Article not found" });
+    return res.status(200).json(article);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch articles", error: error.message });
   }

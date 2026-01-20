@@ -1,6 +1,6 @@
 // routes/article-Routes.js
 import express from 'express';
-import { createArticle, getArticles, updateArticle, deleteArticle } from '../api/article-controller.js';
+import { createArticle, getMyArticles, updateArticle, deleteArticle, getArticleById } from '../api/article-controller.js';
 import authenticateToken from "../middleware/auth_middleware.js";
 import { uploadImage } from "../middleware/image_middleware.js";
 
@@ -15,7 +15,9 @@ router.post(
 );
 
 // Get all articles or a specific article by ID
-router.get("/:id?", getArticles);
+router.get("/", getMyArticles);
+
+router.get("/:id", getArticleById);
 
 // Update an article by ID
 router.patch("/:id", authenticateToken, updateArticle);
