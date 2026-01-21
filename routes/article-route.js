@@ -15,7 +15,7 @@ router.post(
 );
 
 // Get all articles or a specific article by ID
-router.get("/", getMyArticles);
+router.get("/", authenticateToken, getMyArticles);
 
 router.get("/:id", getArticleById);
 

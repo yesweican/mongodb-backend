@@ -32,14 +32,19 @@ export const createArticle = async (req, res) => {
 // Get all Articles or get Article by Id
 export const getMyArticles = async (req, res) => {
   try {
-    const userid = req.user.id;
+    const userid = req.user.userId;
+
+    console.log(req.user);
 
     if (!userid) {
       throw new AppError("User ID is required", 400);
     }
 
-    const articles = await Article.find({ author: userid }).populate("author", "fullname email");
-    res.status(200).json(articles);
+    const results = await Article.find({ author: userid }).populate("author", "fullname email");
+    res.status(200).json({
+      count: results.length,
+      results
+    });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch articles", error: error.message });
   }
