@@ -8,9 +8,9 @@ export const createChannel = async (req, res) => {
   const { name, description } = req.body;
   //console.log('last user:'+ req.user);  // the user<=userId from middleware
   try {
-    //console.log('User Id:', req.user);
-    const newChannel = new Channel({ name, description, owner: req.user});
-    const savedChannel= await newChannel.save();
+    console.log('User Id:', req.user);
+    const newChannel = new Channel({ name, description, owner: req.user.userId });
+    const savedChannel = await newChannel.save();
 
     res.status(201).json({ message: 'Channel created successfully', channel: savedChannel });
   } catch (error) {
