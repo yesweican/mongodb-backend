@@ -2,6 +2,7 @@
 // import path from "path";
 // import fs from "fs";
 import Video from '../models/video-model.js';
+import Channel from '../models/channel-model.js';
 import { AppError } from '../errors/app_error.js'
 
 const buildVideoUrl = (req, filename) => {
@@ -13,7 +14,7 @@ const buildVideoUrl = (req, filename) => {
 export const createVideo = async (req, res) => {
 
   const file = req.file; // Multer processes 'file' field
-  const { title, description, alterURL} = req.body;
+  const { title, description, channelId} = req.body;
   //console.log('last user:'+ req.user);  // the user<=userId from middleware
   try {
     // Validate input
@@ -22,6 +23,23 @@ export const createVideo = async (req, res) => {
     }
     if (!title || !description) {
       return res.status(400).json({ message: "Title and description are required!" });
+    }
+
+        /* -------- Channel Ownership Check -------- */
+    if(channelId) {
+      const channel = await Channel.findById(channelId);
+
+      if (!channel) {
+        return res.status(404).json({
+          message: "Channel not found"
+        });
+      }
+
+      if (channel.owner.toString() !== userId) {
+        return res.status(403).json({
+          message: "You are not authorized to upload videos to this channel"
+        });
+      }
     }
 
     // Optionally: Save the file to cloud storage (e.g., AWS S3, Azure Blob, GCP)
@@ -37,9 +55,8 @@ export const createVideo = async (req, res) => {
       title,
       videoURL: videoPath,
       description,
-      alterURL,
+      channelId,
       creator: req.user.userId,
-      //channelId: req.user.defaultChannelId
     });
     const savedVideo = await newVideo.save();
 
@@ -55,9 +72,6 @@ export const createVideo = async (req, res) => {
     //console.error('Error creating video:', error);
     res.status(500).json({ message: 'Failed to create Video, author=>'+req.user, error: error.message });
   }
-
-    // Cleanup: Delete file from server if uploaded to cloud (optional)
-    // fs.unlinkSync(targetPath);
 };
 
 // Get all Videos or get Video by Id
