@@ -4,11 +4,10 @@ import Channel from '../models/channel-model.js';
 
 // Create a new subscription
 export const subscribe = async (req, res) => {
-  const { channel } = req.params;
-  //console.log('last user:'+ req.user);  // the user<=userId from middleware
+  const { id } = req.params;
+  console.log('last user:'+ req.user);  // the user<=userId from middleware
   try {
-    //console.log('User Id:', req.user);
-    const newSubscription = new Subscription({ channel: channel, subscriber: req.user});
+    const newSubscription = new Subscription({ channel: id, subscriber: req.user.userId});
     const savedSubscription= await newSubscription.save();
 
     res.status(201).json({ message: 'Subscription created successfully', subscription: savedSubscription });
