@@ -3,6 +3,7 @@
 // import fs from "fs";
 import Video from '../models/video-model.js';
 import Channel from '../models/channel-model.js';
+import Subscription from "../models/subscription-model.js";
 import { AppError } from '../errors/app_error.js'
 
 const buildVideoUrl = (req, filename) => {
@@ -139,6 +140,51 @@ export const searchVideos = async (req, res) => {
   }
 };
 
+// Get all subscription videos
+export const getSubscriptionVideos = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // 1️⃣ Find channels user is subscribed to
+    const subscriptions = await Subscription.find(
+      { subscriber: userId },
+      { channel: 1, _id: 0 }
+    );
+
+    const channelIds = subscriptions.map(sub => sub.channel);
+
+    if (channelIds.length === 0) {
+      return res.status(200).json({
+        count: 0,
+        results: []
+      });
+    }
+
+    // 2️⃣ Find videos from those channels
+    const videos = await Video.find({
+      channelId: { $in: channelIds }
+    })
+      .sort({ createdAt: -1 }) // newest first
+      .populate("channelId", "name")
+      .lean();
+
+    res.status(200).json({
+      count: videos.length,
+      results: videos
+    });
+  } catch (error) {
+    console.error("Subscription feed error:", error);
+    res.status(500).json({
+      message: "Failed to load subscription videos",
+      error: error.message
+    });
+  }
+};
+
 
 // Get all Articles or get Article by Id
 export const updateVideo = async (req, res) => {
@@ -171,3 +217,4 @@ export const deleteVideo = async (req, res) => {
     res.status(500).json({ message: "Failed to delete video", error: error.message });
   }
 };
+
