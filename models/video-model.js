@@ -52,5 +52,7 @@ videoSchema.index(
   }
 );
 
+videoSchema.index({ channelId: 1, createdAt: -1 });
+
 const Video = mongoose.model('Video', videoSchema);
 export default Video;
