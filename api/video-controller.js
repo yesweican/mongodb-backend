@@ -16,7 +16,9 @@ export const createVideo = async (req, res) => {
 
   const file = req.file; // Multer processes 'file' field
   const { title, description, channelId} = req.body;
-  //console.log('last user:'+ req.user);  // the user<=userId from middleware
+  const { userId } = req.user;
+
+  //console.log('last user:'+ req.user.userId);  // userId from middleware
   try {
     // Validate input
     if (!file) {
@@ -51,7 +53,6 @@ export const createVideo = async (req, res) => {
     //const videoPath = `/uploads/videos/${req.file.filename}`;
     const videoPath = buildVideoUrl(req, req.file.filename);
 
-    console.log('User Id:', req.user);
     const newVideo = new Video({
       title,
       videoURL: videoPath,
@@ -59,6 +60,7 @@ export const createVideo = async (req, res) => {
       channelId,
       creator: req.user.userId,
     });
+
     const savedVideo = await newVideo.save();
 
     res.status(201).json({ 
@@ -70,8 +72,8 @@ export const createVideo = async (req, res) => {
       },
       video: savedVideo });
   } catch (error) {
-    //console.error('Error creating video:', error);
-    res.status(500).json({ message: 'Failed to create Video, author=>'+req.user, error: error.message });
+    console.error('Error creating video:', error);
+    res.status(500).json({ message: 'Failed to create Video, creator=>'+req.user.userId, error: error.message });
   }
 };
 
