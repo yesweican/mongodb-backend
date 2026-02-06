@@ -1,5 +1,6 @@
 // controllers/postController.js
 import Channel from '../models/channel-model.js';
+import Subscription from '../models/subscription-model.js';
 import { AppError } from '../errors/app_error.js'
 import mongoose from 'mongoose';
 
@@ -49,6 +50,52 @@ export const getChannelById = async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch Channel By Id", error: error.message });
+  }
+};
+
+export const getChannelSubscribers = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const page = 0;
+    const pageSize = 20;
+
+    if (!id) {
+      throw new AppError("Channel ID is required", 400);
+    }
+
+    /* ------------------------------------
+       1️⃣ Load channel & ownership check
+    ------------------------------------ */
+    const channel = await Channel.findById(id);
+
+    if (!channel) {
+      throw new AppError("Channel not found", 404);
+    }
+
+    if (channel.owner.toString() !== req.user.userId) {
+      throw new AppError("Forbidden: not channel owner", 403);
+    }
+
+    console.log(`Fetching subscribers for channel: ${id}`);
+
+    const subscriptions = await Subscription.find({ channel: id })
+      .populate("subscriber", "username fullname email")
+      .sort({ createdAt: -1 })
+      .skip(page * pageSize)
+      .limit(pageSize);
+
+    console.log(subscriptions);
+
+    const results = subscriptions.map(s => s.subscriber);
+
+    res.status(200).json({
+      channelId: id,
+      count: results.length,
+      results
+    });
+  } catch (err) {
+    console.log(err.message);
   }
 };
   
