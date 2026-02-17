@@ -1,7 +1,6 @@
 import express from "express";
 import {
   createComment,
-  getCommentsByVideo,
   updateComment,
   deleteComment
 } from "../api/comment-controller.js";
@@ -13,7 +12,7 @@ const router = express.Router();
  * Create a comment for a video
  */
 router.post(
-  "/videos/:videoId/comments",
+  "/:videoId",
   authenticateToken,
   createComment
 );
@@ -22,25 +21,16 @@ router.post(
  * Update a comment (creator only)
  */
 router.patch(
-  "/comments/:id",
+  "/:id",
   authenticateToken,
   updateComment
 );
 
 /**
- * Get comments for a video (public)
- */
-router.get(
-  "/videos/:videoId/comments",
-  getCommentsByVideo
-);
-
-
-/**
  * Delete a comment (owner only)
  */
 router.delete(
-  "/comments/:id",
+  "/:id",
   authenticateToken,
   deleteComment
 );
