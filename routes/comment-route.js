@@ -12,7 +12,7 @@ const router = express.Router();
  * Create a comment for a video
  */
 router.post(
-  "/:videoId",
+  "/",
   authenticateToken,
   createComment
 );

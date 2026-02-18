@@ -6,7 +6,7 @@ import { AppError } from "../errors/app_error.js";
  */
 export const createComment = async (req, res, next) => {
   try {
-    const { videoId } = req.params;
+    const { video_id } = req.body;
     const { details } = req.body;
     const { userId } = req.user;
 
@@ -15,7 +15,7 @@ export const createComment = async (req, res, next) => {
     }
 
     const comment = await Comment.create({
-      video_id: videoId,
+      video_id: video_id,
       creator: userId,
       details
     });
