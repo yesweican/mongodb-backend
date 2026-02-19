@@ -1,6 +1,7 @@
 // controllers/postController.js
 import Channel from '../models/channel-model.js';
 import Subscription from '../models/subscription-model.js';
+import Video from '../models/video-model.js';
 import { AppError } from '../errors/app_error.js'
 import mongoose from 'mongoose';
 
@@ -98,6 +99,49 @@ export const getChannelSubscribers = async (req, res) => {
     console.log(err.message);
   }
 };
+
+export const getChannelVideos = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const page = 0;
+    const pageSize = 20;
+
+    if (!id) {
+      throw new AppError("Channel ID is required", 400);
+    }
+
+    /* ------------------------------------
+       1️⃣ Load channel & ownership check
+    ------------------------------------ */
+    const channel = await Channel.findById(id);
+
+    if (!channel) {
+      throw new AppError("Channel not found", 404);
+    }
+
+    console.log(`Fetching videos for channel: ${id}`);
+
+    const videos = await Video.find({ channelId: id })
+      .populate("channelId", "name")
+      .sort({ createdAt: -1 })
+      .skip(page * pageSize)
+      .limit(pageSize);
+
+    console.log(videos);
+
+    const results = videos.map(v => v);
+
+    res.status(200).json({
+      channelId: id,
+      count: results.length,
+      results
+    });
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
   
 // Update Channel by Id
 export const updateChannel = async (req, res) => {
