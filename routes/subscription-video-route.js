@@ -1,4 +1,4 @@
-// routes/article-Routes.js
+// routes/subscription-video-Routes.js
 import express from 'express';
 import { getSubscriptionVideos } from '../api/video-controller.js';
 import authenticateToken from "../middleware/auth_middleware.js";

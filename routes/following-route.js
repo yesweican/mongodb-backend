@@ -1,4 +1,4 @@
-// routes/article-Routes.js
+// routes/following-Routes.js
 import express from 'express';
 import { createFollowing, getFollowings, deleteFollowing } from '../api/following-controller.js';
 import authenticateToken from "../middleware/auth_middleware.js";

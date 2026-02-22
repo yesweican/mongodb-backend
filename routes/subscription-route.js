@@ -1,4 +1,4 @@
-// routes/article-Routes.js
+// routes/subscription-Routes.js
 import express from 'express';
 import { subscribe, getMySubscriptions, unsubscribe } from '../api/subscription-controller.js';
 import authenticateToken from "../middleware/auth_middleware.js";

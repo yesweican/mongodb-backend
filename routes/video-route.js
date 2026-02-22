@@ -1,4 +1,4 @@
-// routes/article-Routes.js
+// routes/video-Routes.js
 import express from 'express';
 import multer from "multer";
 import { createVideo, getMyVideos, getVideoById, updateVideo, deleteVideo } from '../api/video-controller.js';
