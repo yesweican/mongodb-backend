@@ -12,6 +12,6 @@ router.post('/:videoId', authenticateToken, videoLikeToggle);
 router.get('/check/:videoId', authenticateToken, videoLikeCheck);
 
 // Get the like count for a video
-router.get('/count/:videoId', authenticateToken, videoLikeCount);
+router.get('/count/:videoId', videoLikeCount);
 
 export default router;
