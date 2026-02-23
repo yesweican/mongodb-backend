@@ -2,7 +2,7 @@ import express from "express";
 import {
   getCommentsByVideo,
 } from "../api/comment-controller.js";
-import authenticateToken from "../middleware/auth_middleware.js";
+//import authenticateToken from "../middleware/auth_middleware.js";
 
 const router = express.Router();
 
