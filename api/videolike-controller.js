@@ -7,7 +7,7 @@ import VideoLike from "../models/videolike-model.js";
 export const videoLikeToggle = async (req, res, next) => {
   try {
     const videoId = req.params.videoId;
-    const userId = req.user; // or req.user.id
+    const { userId } = req.user; // or req.user.id
 
     if (!videoId) {
       return res.status(400).json({ message: "Video ID is required" });
@@ -45,7 +45,7 @@ export const videoLikeToggle = async (req, res, next) => {
 export const videoLikeCheck = async (req, res, next) => {
   try {
     const videoId = req.params.videoId;
-    const userId = req.user;
+    const { userId } = req.user;
 
     const like = await VideoLike.findOne({
       video: videoId,
