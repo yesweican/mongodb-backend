@@ -34,23 +34,6 @@ export const getMySubscriptions = async (req, res) => {
   }
 };
 
-// Get all My channel's subscribers
-export const getSubscribers = async (req, res) => {
-  try {
-    const { chanid } = req.params;
-    if (chanid) {
-       const channel = await Channel.find({id: chanid, owner:req.user.id});
-       if (!channel) return res.status(404).json({ message: "Channel not found" });
-       return res.status(200).json(subscription);
-    }
-
-    const subscribers = await Subscription.findAll({channel: chanid}).populate("subscriber", "id, username");
-    res.status(200).json(subscribers);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch Subscriptions", error: error.message });
-  }
-};
-  
 // Delete Subscription by Id
 export const unsubscribe = async (req, res) => {
   try {

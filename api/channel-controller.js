@@ -2,8 +2,8 @@
 import Channel from '../models/channel-model.js';
 import Subscription from '../models/subscription-model.js';
 import Video from '../models/video-model.js';
-import { AppError } from '../errors/app_error.js'
-import mongoose from 'mongoose';
+import { AppError } from '../errors/app_error.js';
+import getPaginationParams from '../utilities/pagination.js';
 
 // Create a new channel
 export const createChannel = async (req, res) => {
@@ -54,91 +54,100 @@ export const getChannelById = async (req, res) => {
   }
 };
 
-export const getChannelSubscribers = async (req, res) => {
+export const getChannelSubscribers = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const page = 0;
-    const pageSize = 20;
-
     if (!id) {
-      throw new AppError("Channel ID is required", 400);
+      return res.status(400).json({ message: "Channel ID is required" });
     }
+
+    const { page, pageSize, skip } = getPaginationParams(req);
 
     /* ------------------------------------
        1️⃣ Load channel & ownership check
     ------------------------------------ */
-    const channel = await Channel.findById(id);
+    const channel = await Channel.findById(id).lean();
 
     if (!channel) {
-      throw new AppError("Channel not found", 404);
+      return res.status(404).json({ message: "Channel not found" });
     }
 
     if (channel.owner.toString() !== req.user.userId) {
-      throw new AppError("Forbidden: not channel owner", 403);
+      return res.status(403).json({ message: "Forbidden: not channel owner" });
     }
 
-    console.log(`Fetching subscribers for channel: ${id}`);
+    /* ------------------------------------
+       2️⃣ Paginate subscribers
+    ------------------------------------ */
 
-    const subscriptions = await Subscription.find({ channel: id })
-      .populate("subscriber", "username fullname email")
-      .sort({ createdAt: -1 })
-      .skip(page * pageSize)
-      .limit(pageSize);
+    const filter = { channel: id };
 
-    console.log(subscriptions);
+    const [subscriptions, total] = await Promise.all([
+      Subscription.find(filter)
+        .populate("subscriber", "username fullname email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+      Subscription.countDocuments(filter)
+    ]);
 
+    // Extract only subscriber objects
     const results = subscriptions.map(s => s.subscriber);
 
     res.status(200).json({
       channelId: id,
+      page,
+      pageSize,
+      total,
       count: results.length,
       results
     });
+
   } catch (err) {
-    console.log(err.message);
+    next(err);
   }
 };
 
-export const getChannelVideos = async (req, res) => {
+export const getChannelVideos = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const page = 0;
-    const pageSize = 20;
-
     if (!id) {
-      throw new AppError("Channel ID is required", 400);
+      return res.status(400).json({ message: "Channel ID is required" });
     }
 
-    /* ------------------------------------
-       1️⃣ Load channel & ownership check
-    ------------------------------------ */
-    const channel = await Channel.findById(id);
-
+    const channel = await Channel.findById(id).lean();
     if (!channel) {
-      throw new AppError("Channel not found", 404);
+      return res.status(404).json({ message: "Channel not found" });
     }
 
-    console.log(`Fetching videos for channel: ${id}`);
+    const { page, pageSize, skip } = getPaginationParams(req);
 
-    const videos = await Video.find({ channelId: id })
-      .populate("channelId", "name")
-      .sort({ createdAt: -1 })
-      .skip(page * pageSize)
-      .limit(pageSize);
+    const filter = { channelId: id };
 
-    console.log(videos);
-
-    const results = videos.map(v => v);
+    const [videos, total] = await Promise.all([
+      Video.find(filter)
+        .populate("channelId", "name")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+      Video.countDocuments(filter)
+    ]);
 
     res.status(200).json({
       channelId: id,
-      count: results.length,
-      results
+      page,
+      pageSize,
+      total,
+      count: videos.length,
+      results: videos
     });
+
   } catch (err) {
-    console.log(err.message);
+    next(err);
   }
 };
 

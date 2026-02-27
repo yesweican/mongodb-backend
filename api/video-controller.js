@@ -5,6 +5,7 @@ import Video from '../models/video-model.js';
 import Channel from '../models/channel-model.js';
 import Subscription from "../models/subscription-model.js";
 import { AppError } from '../errors/app_error.js'
+import getPaginationParams from '../utilities/pagination.js';
 
 const buildVideoUrl = (req, filename) => {
   // This is the SINGLE place video_url is constructed
@@ -77,24 +78,38 @@ export const createVideo = async (req, res) => {
   }
 };
 
-// Get all Videos or get Video by Id
 export const getMyVideos = async (req, res) => {
   try {
     const { userId } = req.user;
 
     if (!userId) {
-       throw new AppError("User ID is required", 400);
+      throw new AppError("User ID is required", 400);
     }
 
-    const results = await Video.find({ creator: userId });  
-    
+    const { page, pageSize, skip } = getPaginationParams(req);
+
+    const [results, total] = await Promise.all([
+      Video.find({ creator: userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+      Video.countDocuments({ creator: userId })
+    ]);
+
     res.status(200).json({
+      page,
+      pageSize,
+      total,
       count: results.length,
       results
     });
 
   } catch (error) {
-   res.status(500).json({ message: "Failed to fetch My Videos", error: error.message });
+    res.status(500).json({
+      message: "Failed to fetch My Videos",
+      error: error.message
+    });
   }
 };
 
@@ -115,28 +130,36 @@ export const searchVideos = async (req, res) => {
     const { q } = req.query;
 
     if (!q || q.trim().length === 0) {
-      return res.status(400).json({ message: 'Search term is required' });
+      return res.status(400).json({ message: "Search term is required" });
     }
 
-    const results = await Video.find(
-      { $text: { $search: q } },
-      {
-        score: { $meta: 'textScore' }
-      }
-    )
-      .sort({ score: { $meta: 'textScore' } })
-      .limit(20)
-      .populate('creator', 'username fullname');
-      //.populate('channelId', 'name');
+    const { page, pageSize, skip } = getPaginationParams(req);
+
+    const [results, total] = await Promise.all([
+      Video.find(
+        { $text: { $search: q } },
+        { score: { $meta: "textScore" } }
+      )
+        .sort({ score: { $meta: "textScore" } })
+        .skip(skip)
+        .limit(pageSize)
+        .populate("creator", "username fullname")
+        .lean(),
+      Video.countDocuments({ $text: { $search: q } })
+    ]);
 
     res.status(200).json({
       query: q,
+      page,
+      pageSize,
+      total,
       count: results.length,
       results
     });
+
   } catch (error) {
     res.status(500).json({
-      message: 'Video search failed',
+      message: "Video search failed",
       error: error.message
     });
   }
@@ -151,33 +174,47 @@ export const getSubscriptionVideos = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // 1️⃣ Find channels user is subscribed to
+    const { page, pageSize, skip } = getPaginationParams(req);
+
+    // 1️⃣ Find subscribed channels
     const subscriptions = await Subscription.find(
       { subscriber: userId },
       { channel: 1, _id: 0 }
-    );
+    ).lean();
 
     const channelIds = subscriptions.map(sub => sub.channel);
 
     if (channelIds.length === 0) {
       return res.status(200).json({
+        page,
+        pageSize,
+        total: 0,
         count: 0,
         results: []
       });
     }
 
-    // 2️⃣ Find videos from those channels
-    const videos = await Video.find({
-      channelId: { $in: channelIds }
-    })
-      .sort({ createdAt: -1 }) // newest first
-      .populate("channelId", "name")
-      .lean();
+    // 2️⃣ Paginate videos
+    const filter = { channelId: { $in: channelIds } };
+
+    const [videos, total] = await Promise.all([
+      Video.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .populate("channelId", "name")
+        .lean(),
+      Video.countDocuments(filter)
+    ]);
 
     res.status(200).json({
+      page,
+      pageSize,
+      total,
       count: videos.length,
       results: videos
     });
+
   } catch (error) {
     console.error("Subscription feed error:", error);
     res.status(500).json({

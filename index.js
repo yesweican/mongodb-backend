@@ -16,7 +16,6 @@ import followerRoutes from "./routes/follower-route.js";
 import channelRoutes from "./routes/channel-route.js";
 import channelSubscriberRoutes from "./routes/channel-subscriber-route.js";
 import channelVideoRoutes from "./routes/channel-video-route.js";
-import subscriberRoutes from "./routes/subscriber-route.js";
 import subscriptionRoutes from "./routes/subscription-route.js";
 import subscriptionVideoRoutes from "./routes/subscription-video-route.js";
 import authenticateToken from "./middleware/auth_middleware.js";
@@ -53,7 +52,6 @@ app.use("/api/channelsubscribers", channelSubscriberRoutes);
 app.use("/api/channelvideos", channelVideoRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/subsvideos", subscriptionVideoRoutes);
-app.use("/api/subscriber", subscriberRoutes);
 
 app.use("/uploads", express.static("uploads"));
 
