@@ -29,26 +29,93 @@ export const createArticle = async (req, res) => {
   }
 };
 
-// Get all Articles or get Article by Id
-export const getMyArticles = async (req, res) => {
+// Get all Articles by Author or User Id
+// With extra policy restriction
+export async function getArticles(req, res, next) {
   try {
-    const userid = req.user.userId;
+    const { author } = req.query;
 
-    console.log(req.user);
+    const page = Number(req.query.page ?? 0);
+    const pageSize = Number(req.query.pageSize ?? 20);
 
-    if (!userid) {
-      throw new AppError("User ID is required", 400);
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      throw new AppError("Authentication required", 401);
     }
 
-    const results = await Article.find({ author: userid }).populate("author", "fullname email");
+    const targetAuthor = author ?? currentUserId;
+
+    if (!mongoose.Types.ObjectId.isValid(targetAuthor)) {
+      throw new AppError("Invalid author ID", 400);
+    }
+
+    const isSelfRequest = targetAuthor === currentUserId;
+    const filter = { author: targetAuthor };
+
+    let total;
+    let rows;
+
+    if (isSelfRequest) {
+      // 🔓 Full access
+      const offset = page * pageSize;
+
+      [total, rows] = await Promise.all([
+        Article.countDocuments(filter),
+        Article.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(offset)
+          .limit(pageSize)
+          .lean()
+      ]);
+
+    } else {
+      // 🔒 Public limited window
+      const MAX_PUBLIC_WINDOW = 100;
+
+      const offset = page * pageSize;
+
+      // If offset exceeds allowed window → empty result
+      if (offset >= MAX_PUBLIC_WINDOW) {
+        return res.status(200).json({
+          page,
+          pageSize,
+          total: MAX_PUBLIC_WINDOW,
+          count: 0,
+          results: []
+        });
+      }
+
+      // Adjust limit so we never go beyond 100
+      const allowedLimit = Math.min(
+        pageSize,
+        MAX_PUBLIC_WINDOW - offset
+      );
+
+      [total, rows] = await Promise.all([
+        Article.countDocuments(filter).then(count =>
+          Math.min(count, MAX_PUBLIC_WINDOW)
+        ),
+        Article.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(offset)
+          .limit(allowedLimit)
+          .lean()
+      ]);
+    }
+
     res.status(200).json({
-      count: results.length,
-      results
+      page,
+      pageSize,
+      total,
+      count: rows.length,
+      results: rows
     });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch articles", error: error.message });
+
+  } catch (err) {
+    next(err);
   }
-};
+}
 
 export const getArticleById = async (req, res) => {
   try {
@@ -91,3 +158,44 @@ export const deleteArticle = async (req, res) => {
     res.status(500).json({ message: "Failed to delete article", error: error.message });
   }
 };
+
+export async function searchArticles(req, res, next) {
+  try {
+    const { q } = req.query;
+
+    if (!q || !q.trim()) {
+      throw new AppError("Search query is required", 400);
+    }
+
+    const page = Number(req.query.page ?? 0);
+    const pageSize = Number(req.query.pageSize ?? 20);
+    const skip = page * pageSize;
+
+    const filter = {
+      $or: [
+        { title: { $regex: q, $options: "i" } },
+        { details: { $regex: q, $options: "i" } }
+      ]
+    };
+
+    const [total, rows] = await Promise.all([
+      Article.countDocuments(filter),
+      Article.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .lean()
+    ]);
+
+    res.status(200).json({
+      page,
+      pageSize,
+      total,
+      count: rows.length,
+      results: rows
+    });
+
+  } catch (err) {
+    next(err);
+  }
+}

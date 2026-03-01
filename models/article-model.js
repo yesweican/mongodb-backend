@@ -23,5 +23,10 @@ const articleSchema = new Schema({
   },
 }, { timestamps: true });
 
+articleSchema.index({
+  title: "text",
+  details: "text"
+});
+
 const Article = mongoose.model('Article', articleSchema);
 export default Article;

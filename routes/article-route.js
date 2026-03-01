@@ -1,6 +1,12 @@
 // routes/article-Routes.js
 import express from 'express';
-import { createArticle, getMyArticles, updateArticle, deleteArticle, getArticleById } from '../api/article-controller.js';
+import { 
+  createArticle, 
+  getArticles, 
+  getArticleById, 
+  updateArticle, 
+  deleteArticle, 
+} from '../api/article-controller.js';
 import authenticateToken from "../middleware/auth_middleware.js";
 import { uploadImage } from "../middleware/image_middleware.js";
 
@@ -14,8 +20,8 @@ router.post(
   createArticle
 );
 
-// Get all articles or a specific article by ID
-router.get("/", authenticateToken, getMyArticles);
+// Get all articles or a specific article by User ID
+router.get("/", authenticateToken, getArticles);
 
 router.get("/:id", getArticleById);
 
